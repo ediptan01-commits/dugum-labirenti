@@ -272,8 +272,71 @@ body{overscroll-behavior:none}
   .shell{padding-top:max(30px, env(safe-area-inset-top))!important}
 }
 
-</style></head><body><main class="shell"><header class="heading"><div><div class="eyebrow">NEXUS • ZİNCİR REAKSİYON</div><h1>⚡ Düğüm Labirenti</h1><p>Aynı numaralı beyaz blokları birbirine bağla.<br>Önce 1, sonra 2, sonra 3 — yollar kesişmesin!</p></div><div class="tag"><b id="score">0</b><small>PUAN</small></div></header><section class="stats"><div class="stat"><small>BÖLÜM</small><strong id="levelNo">1/8</strong></div><div class="stat"><small>HAMLE</small><strong id="moves">0</strong></div><div class="stat"><small>BAĞLANTI</small><strong id="done">0/3</strong></div></section><div class="bar"><b id="levelTitle">Karışık Hatlar</b><span id="difficulty">Zorluk: Orta</span></div><div class="boardframe"><div id="board" class="board" aria-label="Bağlantı bulmacası"></div></div><div class="legend"><span><i class="swatch" style="background:#151f32"></i> Engel</span><span><i class="swatch" style="background:linear-gradient(135deg,#ff7286,#ffb4c0)"></i> Beyaz eşleşme bloğu</span><span>◆ Enerji kristali</span><span>⚡ Zincir aktivasyonu</span></div><div class="message" id="msg" aria-live="polite">Önce 1 numaralı bloğu bağla. Enerji bir sonraki bloğu etkinleştirecek!</div><div class="victory" id="victory">🏆 MÜKEMMEL! BÜTÜN BLOKLAR BAĞLANDI!</div><div class="actions"><button id="undo">↶ Geri</button><button id="hint">💡 İpucu</button><button id="restart">⟳ Yenile</button><button id="next" class="primary" disabled>Sonraki →</button></div><div id="levelrow" class="levelrow"></div><div class="how"><b>🎮 Nasıl oynanır?</b> Üzerinde <b>1 · BAŞLA</b> yazan beyaz bloğa dokun; parmağını komşu karelere sürükle veya karelere tek tek dokun. Aynı numaralı <b>1 · HEDEF</b> bloğuna ulaş. Ardından 2 ve 3 numaralı çiftlere geç. Yolda o rengin <b>◆</b> işaretli kontrol noktasından geçmek zorundasın. Başka bir yolun üzerine basamazsın. Yanlış yoldan geri dönmek için önceki kareye dokun. Yeniden başlamak için aynı renkli uca dokun.</div></main>
+
+#soundControl{border:1px solid #8aa8d0;background:linear-gradient(#fff,#e9f1fd);color:#22395b;border-radius:10px;padding:5px 7px;white-space:nowrap;font-size:11px;font-weight:850;cursor:pointer;box-shadow:0 2px 4px #20365522}.bar{align-items:center;gap:6px}.bar #difficulty{font-size:11px;white-space:nowrap}
+</style></head><body><main class="shell"><header class="heading"><div><div class="eyebrow">NEXUS • ZİNCİR REAKSİYON</div><h1>⚡ Düğüm Labirenti</h1><p>Aynı numaralı beyaz blokları birbirine bağla.<br>Önce 1, sonra 2, sonra 3 — yollar kesişmesin!</p></div><div class="tag"><b id="score">0</b><small>PUAN</small></div></header><section class="stats"><div class="stat"><small>BÖLÜM</small><strong id="levelNo">1/8</strong></div><div class="stat"><small>HAMLE</small><strong id="moves">0</strong></div><div class="stat"><small>BAĞLANTI</small><strong id="done">0/3</strong></div></section><div class="bar"><b id="levelTitle">Karışık Hatlar</b><span id="difficulty">Zorluk: Orta</span><button id="soundControl" type="button" aria-label="Oyun sesleri ve müziği" aria-pressed="true">🔊 Ses + Müzik</button></div><div class="boardframe"><div id="board" class="board" aria-label="Bağlantı bulmacası"></div></div><div class="legend"><span><i class="swatch" style="background:#151f32"></i> Engel</span><span><i class="swatch" style="background:linear-gradient(135deg,#ff7286,#ffb4c0)"></i> Beyaz eşleşme bloğu</span><span>◆ Enerji kristali</span><span>⚡ Zincir aktivasyonu</span></div><div class="message" id="msg" aria-live="polite">Önce 1 numaralı bloğu bağla. Enerji bir sonraki bloğu etkinleştirecek!</div><div class="victory" id="victory">🏆 MÜKEMMEL! BÜTÜN BLOKLAR BAĞLANDI!</div><div class="actions"><button id="undo">↶ Geri</button><button id="hint">💡 İpucu</button><button id="restart">⟳ Yenile</button><button id="next" class="primary" disabled>Sonraki →</button></div><div id="levelrow" class="levelrow"></div><div class="how"><b>🎮 Nasıl oynanır?</b> Üzerinde <b>1 · BAŞLA</b> yazan beyaz bloğa dokun; parmağını komşu karelere sürükle veya karelere tek tek dokun. Aynı numaralı <b>1 · HEDEF</b> bloğuna ulaş. Ardından 2 ve 3 numaralı çiftlere geç. Yolda o rengin <b>◆</b> işaretli kontrol noktasından geçmek zorundasın. Başka bir yolun üzerine basamazsın. Yanlış yoldan geri dönmek için önceki kareye dokun. Yeniden başlamak için aynı renkli uca dokun.</div></main>
 <script>
+
+/* NEXUS AUDIO v2.1: user-gesture unlocked procedural audio. No external files. */
+const NexusAudio=(()=>{
+  let context=null,musicClock=null,stepIndex=0,lastStepAt=0,enabled=true,musicEnabled=true;
+  try { const saved=JSON.parse(localStorage.getItem('nexus_audio_settings')||'{}');enabled=saved.enabled!==false;musicEnabled=saved.musicEnabled!==false; }catch(e){}
+  const AudioContextCtor=window.AudioContext||window.webkitAudioContext;
+  function persist(){try{localStorage.setItem('nexus_audio_settings',JSON.stringify({enabled,musicEnabled}))}catch(e){}}
+  function update(){const button=document.getElementById('soundControl');if(button){button.textContent=enabled?(musicEnabled?'🔊 Ses + Müzik':'🔉 Efektler'):'🔇 Ses kapalı';button.setAttribute('aria-pressed',String(enabled));}}
+  function wake(){
+    if(!enabled||!AudioContextCtor)return false;
+    try{if(!context)context=new AudioContextCtor();if(context.state==='suspended')context.resume().catch(()=>{});if(musicEnabled&&!musicClock)startMusic();return true}catch(e){return false}
+  }
+  function tone(freq,duration=0.12,volume=0.05,type='sine',delay=0,slide=0){
+    if(!enabled||!context||context.state!=='running')return;
+    const start=context.currentTime+delay;
+    const osc=context.createOscillator(),gain=context.createGain();
+    osc.type=type;osc.frequency.setValueAtTime(freq,start);
+    if(slide)osc.frequency.exponentialRampToValueAtTime(Math.max(40,freq+slide),start+duration);
+    gain.gain.setValueAtTime(0.0001,start);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0002,volume),start+0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001,start+duration);
+    osc.connect(gain);gain.connect(context.destination);
+    osc.start(start);osc.stop(start+duration+0.025);
+  }
+  const melody=[261.63,329.63,392.0,329.63,293.66,349.23,440,392];
+  function startMusic(){
+    if(!enabled||!musicEnabled||musicClock||!context)return;
+    musicClock=setInterval(()=>{
+      if(!enabled||!musicEnabled||!context||context.state!=='running')return;
+      const n=stepIndex++;
+      tone(melody[n%melody.length]/2,0.43,0.008,'sine',0);
+      if(n%2===0)tone(melody[(n+2)%melody.length],0.28,0.006,'triangle',0.12);
+    },420);
+  }
+  function stopMusic(){if(musicClock){clearInterval(musicClock);musicClock=null}}
+  function play(name){
+    if(!wake())return;
+    const now=Date.now();if(name==='step'&&now-lastStepAt<64)return;
+    if(name==='step')lastStepAt=now;
+    switch(name){
+      case 'select': tone(470,.09,.045,'sine',0,140);break;
+      case 'step':tone(330,.045,.018,'triangle',0,55);break;
+      case 'back':tone(280,.09,.035,'sine',0,-85);break;
+      case 'blocked':tone(170,.16,.035,'triangle',0,-75);break;
+      case 'crystal':tone(690,.14,.048,'sine');tone(1030,.22,.029,'sine',.11);break;
+      case 'connect':tone(440,.14,.06,'triangle');tone(659,.18,.05,'triangle',.12);tone(880,.27,.048,'sine',.26);break;
+      case 'win':[523,659,784,1047].forEach((f,i)=>tone(f,.29,.055,'sine',i*.15));break;
+      case 'hint':tone(700,.13,.035,'sine');tone(900,.14,.028,'sine',.1);break;
+    }
+  }
+  function toggle(){
+    if(enabled&&musicEnabled){musicEnabled=false;stopMusic()}
+    else if(enabled){enabled=false;stopMusic();if(context)context.suspend().catch(()=>{})}
+    else{enabled=true;musicEnabled=true;wake()}
+    persist();update();if(enabled)play('select');
+  }
+  document.addEventListener('pointerdown',()=>{if(enabled)wake()},{capture:true,passive:true});
+  document.addEventListener('DOMContentLoaded',()=>{update();const btn=document.getElementById('soundControl');if(btn)btn.addEventListener('click',toggle)});
+  return {play,toggle,update};
+})();
+
 const LEVELS=[{"n":7,"paths":[[[3,2],[3,1],[4,1],[5,1],[5,0],[6,0],[6,1],[6,2],[6,3]],[[3,0],[2,0],[2,1],[1,1],[1,2],[1,3],[2,3],[2,4],[2,5],[3,5]],[[0,2],[0,3],[0,4],[0,5],[1,5],[1,6],[2,6],[3,6],[4,6],[5,6]]],"walls":[[3,4],[5,5],[2,2],[4,2],[4,4],[3,3],[0,0],[5,4],[4,0],[0,6]],"checkpoints":[[[5,0]],[[1,2]],[[1,5]]]},{"n":7,"paths":[[[5,6],[5,5],[5,4],[5,3],[4,3],[3,3],[3,2],[3,1],[4,1]],[[6,0],[5,0],[4,0],[3,0],[2,0],[2,1],[2,2],[1,2],[0,2],[0,1]],[[4,5],[3,5],[3,6],[2,6],[1,6],[1,5],[0,5],[0,4],[0,3],[1,3]]],"walls":[[2,5],[1,4],[4,6],[2,3],[5,1],[1,0],[2,4],[4,2],[6,1],[6,3]],"checkpoints":[[[4,3]],[[2,0]],[[1,6]]]},{"n":8,"paths":[[[3,4],[3,5],[4,5],[4,6],[5,6],[6,6],[6,5],[6,4],[6,3],[6,2]],[[0,7],[1,7],[1,6],[1,5],[1,4],[2,4],[2,3],[2,2],[2,1],[1,1],[0,1]],[[0,0],[1,0],[2,0],[3,0],[4,0],[4,1],[4,2],[4,3],[5,3],[5,4]],[[2,6],[3,6],[3,7],[4,7],[5,7],[6,7],[7,7],[7,6],[7,5],[7,4],[7,3],[7,2]]],"walls":[[3,1],[3,3],[5,5],[5,1],[2,7],[0,4],[6,1],[4,4],[0,6],[6,0]],"checkpoints":[[[5,6]],[[1,4]],[[4,0]],[[6,7]]]},{"n":8,"paths":[[[7,6],[6,6],[5,6],[4,6],[3,6],[2,6],[2,5],[1,5],[0,5],[0,4]],[[1,2],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[6,2],[6,3],[5,3],[4,3]],[[0,1],[0,2],[0,3],[1,3],[2,3],[2,4],[3,4],[3,3],[3,2],[4,2]],[[5,4],[5,5],[6,5],[7,5],[7,4],[7,3],[7,2],[7,1],[7,0],[6,0],[5,0],[4,0]]],"walls":[[1,6],[7,7],[4,4],[6,7],[4,7],[2,2],[1,7],[3,0],[5,7],[0,7]],"checkpoints":[[[3,6]],[[4,1]],[[2,3]],[[7,3]]]},{"n":8,"paths":[[[0,7],[0,6],[1,6],[2,6],[3,6],[3,5],[3,4],[4,4],[5,4],[5,3]],[[5,7],[5,6],[6,6],[6,5],[7,5],[7,4],[7,3],[7,2],[6,2],[6,1],[5,1]],[[1,4],[1,3],[1,2],[2,2],[3,2],[3,1],[4,1],[4,0],[3,0],[2,0]],[[1,1],[0,1],[0,2],[0,3],[0,4],[0,5],[1,5],[2,5],[2,4],[2,3],[3,3],[4,3]]],"walls":[[2,1],[7,1],[5,2],[7,7],[1,0],[2,7],[5,5],[3,7],[7,0],[4,5]],"checkpoints":[[[3,6]],[[7,5]],[[3,2]],[[0,5]]]},{"n":8,"paths":[[[7,2],[6,2],[6,3],[6,4],[5,4],[5,5],[4,5],[4,6],[3,6],[2,6]],[[0,5],[1,5],[1,4],[1,3],[2,3],[2,2],[3,2],[3,3],[3,4],[4,4],[4,3]],[[6,1],[5,1],[4,1],[4,0],[3,0],[2,0],[1,0],[1,1],[1,2],[0,2]],[[7,3],[7,4],[7,5],[6,5],[6,6],[6,7],[5,7],[4,7],[3,7],[2,7],[1,7],[0,7]]],"walls":[[7,0],[3,1],[2,1],[7,6],[0,6],[0,0],[0,3],[1,6],[0,1],[5,0]],"checkpoints":[[[5,4]],[[2,3]],[[3,0]],[[6,7]]]},{"n":9,"paths":[[[8,6],[7,6],[7,5],[7,4],[7,3],[6,3],[5,3],[4,3],[4,2],[3,2],[2,2],[1,2]],[[1,1],[1,0],[2,0],[3,0],[4,0],[5,0],[5,1],[6,1],[7,1],[7,0],[8,0],[8,1]],[[3,3],[3,4],[4,4],[5,4],[5,5],[5,6],[5,7],[6,7],[6,8],[7,8],[8,8],[8,7],[7,7]],[[1,5],[1,4],[0,4],[0,3],[1,3],[2,3],[2,4],[2,5],[2,6],[3,6],[3,7]],[[0,8],[0,7],[0,6],[1,6],[1,7],[1,8],[2,8],[3,8],[4,8],[4,7],[4,6],[4,5]]],"walls":[[6,6],[8,3],[4,1],[0,1],[0,2],[0,5],[6,4],[2,1],[2,7],[3,1]],"checkpoints":[[[7,3],[4,3]],[[4,0],[6,1]],[[5,5],[6,8]],[[1,3],[2,5]],[[1,7],[3,8]]]},{"n":9,"paths":[[[0,5],[1,5],[1,4],[2,4],[3,4],[3,5],[3,6],[3,7],[4,7],[5,7],[6,7],[7,7]],[[6,1],[6,2],[7,2],[7,3],[6,3],[5,3],[5,2],[4,2],[3,2],[3,1],[2,1],[1,1]],[[5,4],[5,5],[6,5],[7,5],[7,6],[8,6],[8,5],[8,4],[8,3],[8,2],[8,1],[7,1],[7,0]],[[8,8],[7,8],[6,8],[5,8],[4,8],[3,8],[2,8],[2,7],[1,7],[1,6],[0,6]],[[2,3],[1,3],[0,3],[0,2],[0,1],[0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[5,1]]],"walls":[[1,8],[3,3],[2,5],[4,6],[4,1],[1,2],[4,5],[8,0],[4,4],[0,8]],"checkpoints":[[[3,4],[3,7]],[[6,3],[4,2]],[[7,6],[8,3]],[[4,8],[2,7]],[[0,1],[2,0]]]},{"n":9,"paths":[[[6,0],[6,1],[5,1],[4,1],[3,1],[3,2],[3,3],[3,4],[2,4],[2,5],[2,6],[2,7]],[[1,7],[0,7],[0,6],[0,5],[0,4],[0,3],[1,3],[1,2],[1,1],[0,1],[0,0],[1,0]],[[3,5],[4,5],[4,4],[4,3],[5,3],[6,3],[7,3],[7,2],[8,2],[8,1],[8,0],[7,0],[7,1]],[[5,7],[4,7],[4,8],[3,8],[3,7],[3,6],[4,6],[5,6],[6,6],[6,5],[7,5]],[[8,8],[7,8],[6,8],[6,7],[7,7],[8,7],[8,6],[8,5],[8,4],[7,4],[6,4],[5,4]]],"walls":[[6,2],[3,0],[1,4],[1,8],[2,8],[5,8],[4,2],[1,6],[7,6],[1,5]],"checkpoints":[[[3,1],[3,4]],[[0,4],[1,2]],[[5,3],[8,2]],[[3,7],[5,6]],[[7,7],[8,5]]],"gates":[{"at":[5,3],"after":1},{"at":[7,7],"after":3}]},{"n":9,"paths":[[[8,5],[7,5],[7,4],[6,4],[5,4],[5,5],[5,6],[5,7],[4,7],[3,7],[2,7],[1,7]],[[2,1],[2,2],[1,2],[1,3],[2,3],[3,3],[3,2],[4,2],[5,2],[5,1],[6,1],[7,1]],[[3,4],[3,5],[2,5],[1,5],[1,6],[0,6],[0,5],[0,4],[0,3],[0,2],[0,1],[1,1],[1,0]],[[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[6,8],[6,7],[7,7],[7,6],[8,6]],[[6,3],[7,3],[8,3],[8,2],[8,1],[8,0],[7,0],[6,0],[5,0],[4,0],[3,0],[3,1]]],"walls":[[7,8],[5,3],[6,5],[4,6],[4,1],[7,2],[4,5],[0,0],[4,4],[8,8]],"checkpoints":[[[5,4],[5,7]],[[2,3],[4,2]],[[1,6],[0,3]],[[4,8],[6,7]],[[8,1],[6,0]]],"gates":[{"at":[2,3],"after":0},{"at":[4,8],"after":2},{"at":[8,1],"after":3}]}];
 const COLORS=['#ff7286','#59b8ff','#ffd166','#8ce6a4','#c69aff'];
 const NAMES=['Dağınık Başlangıç','Kırık Geçitler','Çapraz Düğümler','Karmaşık Koridorlar','Ters Köşeler','Dar Boğaz','Beşli Ağ','Usta Düğüm','Enerji Kapıları','NEXUS Finali'];
@@ -288,6 +351,7 @@ function endpoints(l,g){let p=l.paths[g];return [p[0],p[p.length-1]]}
 function finished(g){let p=paths[g],l=LEVELS[level];if(!p.length)return false;let [s,e]=endpoints(l,g);return key(p[0])===key(s)&&key(p[p.length-1])===key(e)&&l.checkpoints[g].every(cp=>p.some(x=>key(x)===key(cp)))}
 function chainIndex(){let i=0;while(i<paths.length&&finished(i))i++;return i}
 function blast(g){
+ NexusAudio.play("connect");
  const epoch=chainEpoch, sol=paths[g].map(p=>p.slice());
  if(!sol.length)return;
  const board=$('board'),bounds=board.getBoundingClientRect();
@@ -303,23 +367,23 @@ function blast(g){
 }
 function say(msg){$('msg').textContent=msg}
 function snapshot(){history.push({paths:paths.map(p=>p.map(x=>x.slice())),active,moves});if(history.length>400)history.shift()}
-function step(r,c){if(won)return;const l=LEVELS[level],p=[r,c],k=key(p);if(l.walls.some(x=>key(x)===k))return;const gate=(l.gates||[]).find(x=>key(x.at)===k);if(gate && chainIndex()<=gate.after){say('🔒 Enerji kapısı kilitli. Önce '+(gate.after+1)+' numaralı bağlantıyı tamamla.');return}let endpoint=-1,atStart=false;for(let g=0;g<l.paths.length;g++){let [a,b]=endpoints(l,g);if(key(a)===k){endpoint=g;atStart=true;break}if(key(b)===k){endpoint=g;break}}
+function step(r,c){if(won)return;const l=LEVELS[level],p=[r,c],k=key(p);if(l.walls.some(x=>key(x)===k)){NexusAudio.play('blocked');return;}const gate=(l.gates||[]).find(x=>key(x.at)===k);if(gate && chainIndex()<=gate.after){NexusAudio.play('blocked');say('🔒 Enerji kapısı kilitli. Önce '+(gate.after+1)+' numaralı bağlantıyı tamamla.');return}let endpoint=-1,atStart=false;for(let g=0;g<l.paths.length;g++){let [a,b]=endpoints(l,g);if(key(a)===k){endpoint=g;atStart=true;break}if(key(b)===k){endpoint=g;break}}
  if(endpoint>=0){if(endpoint!==active&&endpoint!==chainIndex()){say('🔒 Önce '+(chainIndex()+1)+' numaralı enerji bloğunun bağlantısını tamamla.');return}if(endpoint===active&&paths[endpoint].length===1&&key(paths[endpoint][0])===k)return;
-   if(atStart){snapshot();paths[endpoint]=[p];active=endpoint;moves++;hintCell=null;render();say((endpoint+1)+' numaralı çiftin ◆ kristalinden geçip aynı numaralı HEDEF bloğuna ulaş.');return}
+   if(atStart){NexusAudio.play('select');snapshot();paths[endpoint]=[p];active=endpoint;moves++;hintCell=null;render();say((endpoint+1)+' numaralı çiftin ◆ kristalinden geçip aynı numaralı HEDEF bloğuna ulaş.');return}
    if(endpoint!==active){say('Bağlantıya başlamak için aynı rengin numaralı ilk ucunu seç.');return}
  }
  if(active<0){say('Önce üzerinde BAŞLA yazan numaralı beyaz bloğa dokun.');return}
  let path=paths[active],sol=l.paths[active],end=sol[sol.length-1];if(finished(active)){say('Bu bağlantı tamamlandı; düzenlemek için başlangıç ucuna dokun.');return}
  if(!path.length)return;
  const last=path[path.length-1];if(!adj(last,p))return;
- if(path.length>=2&&key(path[path.length-2])===k){snapshot();path.pop();moves++;hintCell=null;render();return}
+ if(path.length>=2&&key(path[path.length-2])===k){NexusAudio.play('back');snapshot();path.pop();moves++;hintCell=null;render();return}
  let occupied=owners();if(occupied[k]!==undefined)return;
  // only matching end allowed, never a different color's terminal
  for(let g=0;g<l.paths.length;g++){let [a,b]=endpoints(l,g);if(g!==active&&(key(a)===k||key(b)===k))return}
  if(endpoint>=0&&endpoint!==active)return;
- snapshot();path.push(p);moves++;hintCell=null;
+ snapshot();path.push(p);moves++;hintCell=null;NexusAudio.play('step');if(l.checkpoints[active].some(cp=>key(cp)===k))NexusAudio.play('crystal');
  if(key(p)===key(end)&&!l.checkpoints[active].every(cp=>path.some(x=>key(x)===key(cp)))){say('⚠️ Kontrol noktası eksik! Önce yolun üzerinden geri git ve ◆ noktasına uğra.')}else if(key(p)===key(end)){say('⚡ ZİNCİR TETİKLENDİ! Blok hedefe birleşiyor ve '+(active+2)+' numaralı hat açılıyor.');blast(active);active=-1;}else{say('Yolu komşu karelerden devam ettir.');}
- if(paths.every((_,g)=>finished(g))&&!won){won=true;score+=Math.max(100,600-moves*3)+level*70;unlocked=Math.max(unlocked,Math.min(level+1,LEVELS.length-1));saveProgress();$('victory').style.display='block';say('🎉 Harika! Bütün renkler kontrol noktalarından geçerek bağlandı.')}
+ if(paths.every((_,g)=>finished(g))&&!won){NexusAudio.play('win');won=true;score+=Math.max(100,600-moves*3)+level*70;unlocked=Math.max(unlocked,Math.min(level+1,LEVELS.length-1));saveProgress();$('victory').style.display='block';say('🎉 Harika! Bütün renkler kontrol noktalarından geçerek bağlandı.')}
  render();}
 function render(){const l=LEVELS[level],b=$('board');b.innerHTML='';b.style.gridTemplateColumns=`repeat(${l.n},minmax(0,1fr))`;b.style.gridTemplateRows=`repeat(${l.n},minmax(0,1fr))`;$('levelNo').textContent=`${level+1}/${LEVELS.length}`;$('moves').textContent=moves;$('done').textContent=paths.filter((_,g)=>finished(g)).length+'/'+paths.length;$('score').textContent=score;$('levelTitle').textContent=NAMES[level];$('difficulty').textContent='Zorluk: '+(level<2?'Orta':level<4?'Zor':level<6?'Çok zor':level<8?'Usta':'Efsane');$('next').disabled=!won;$('next').textContent=level===LEVELS.length-1?'Başa dön ↺':'Sonraki →';let own=owners(),wall=new Set(l.walls.map(key));let ends={};let checks={};l.paths.forEach((sol,g)=>{ends[key(sol[0])]={g,start:true};ends[key(sol[sol.length-1])]={g,start:false};l.checkpoints[g].forEach(cp=>checks[key(cp)]=g)});
  for(let r=0;r<l.n;r++)for(let c=0;c<l.n;c++){let k=r+','+c;const cell=document.createElement('div');cell.className='cell';cell.dataset.r=r;cell.dataset.c=c;if(wall.has(k)){cell.classList.add('wall');b.appendChild(cell);continue}let g=own[k],e=ends[k],checkpoint=checks[k];if(g!==undefined){cell.classList.add('path');cell.style.setProperty('--color',COLORS[g]);let path=paths[g],index=path.findIndex(x=>key(x)===k),before=path[index-1],after=path[index+1];const centers=[before,after].filter(Boolean);let lines=centers.map(to=>`<line x1="50" y1="50" x2="${50+(to[1]-c)*50}" y2="${50+(to[0]-r)*50}" stroke="#071326" stroke-width="39" stroke-linecap="round"/><line x1="50" y1="50" x2="${50+(to[1]-c)*50}" y2="${50+(to[0]-r)*50}" stroke="${COLORS[g]}" stroke-width="29" stroke-linecap="round"/><line x1="50" y1="50" x2="${50+(to[1]-c)*50}" y2="${50+(to[0]-r)*50}" stroke="#ffffff" stroke-opacity=".48" stroke-width="7" stroke-linecap="round"/>`).join('');const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 100 100');s.innerHTML=lines;cell.appendChild(s)}
@@ -328,9 +392,9 @@ function render(){const l=LEVELS[level],b=$('board');b.innerHTML='';b.style.grid
  $('levelrow').innerHTML='';LEVELS.forEach((_,i)=>{const btn=document.createElement('button');btn.className='levelpick'+(level===i?' current':'');btn.textContent=i+1;btn.disabled=i>unlocked;btn.onclick=()=>init(i);$('levelrow').appendChild(btn)})}
 const b=$('board');function point(ev){let x=document.elementFromPoint(ev.clientX,ev.clientY);let cell=x?.closest('.cell');if(cell&&b.contains(cell)&&!cell.classList.contains('wall'))step(+cell.dataset.r,+cell.dataset.c)}
 b.addEventListener('pointerdown',ev=>{ev.preventDefault();dragging=true;point(ev)});document.addEventListener('pointermove',ev=>{if(dragging){ev.preventDefault();point(ev)}},{passive:false});document.addEventListener('pointerup',()=>dragging=false);document.addEventListener('pointercancel',()=>dragging=false);
-$('undo').onclick=()=>{chainEpoch++;document.querySelectorAll('.energy-orb,.flying-block').forEach(x=>x.remove());if(!history.length){say('Geri alınacak adım yok.');return}let s=history.pop();paths=s.paths;active=s.active;moves=s.moves;hintCell=null;render();say('Son hamle geri alındı.')};
-$('restart').onclick=()=>init(level);
-$('hint').onclick=()=>{if(won)return;let g=active;if(g<0||finished(g))g=chainIndex();if(g<0)return;let sol=LEVELS[level].paths[g],path=paths[g];let stepIndex=path.length;if(!path.length)stepIndex=0;else{let prefix=path.every((p,i)=>sol[i]&&key(p)===key(sol[i]));if(!prefix){say('Bu yol hatalı görünüyor. Geri al ya da yeniden çiz.');return}}let next=sol[stepIndex];if(!next){say('Bağlantının yönünü kontrol et.');return}hintCell=key(next);render();say('💡 Beyaz çerçeveli kare, çözüm yolunda sıradaki adımdır.')};
+$('undo').onclick=()=>{chainEpoch++;document.querySelectorAll('.energy-orb,.flying-block').forEach(x=>x.remove());if(!history.length){say('Geri alınacak adım yok.');return}NexusAudio.play('back');let s=history.pop();paths=s.paths;active=s.active;moves=s.moves;hintCell=null;render();say('Son hamle geri alındı.')};
+$('restart').onclick=()=>{NexusAudio.play('back');init(level)};
+$('hint').onclick=()=>{if(won)return;let g=active;if(g<0||finished(g))g=chainIndex();if(g<0)return;let sol=LEVELS[level].paths[g],path=paths[g];let stepIndex=path.length;if(!path.length)stepIndex=0;else{let prefix=path.every((p,i)=>sol[i]&&key(p)===key(sol[i]));if(!prefix){say('Bu yol hatalı görünüyor. Geri al ya da yeniden çiz.');return}}let next=sol[stepIndex];if(!next){say('Bağlantının yönünü kontrol et.');return}hintCell=key(next);NexusAudio.play('hint');render();say('💡 Beyaz çerçeveli kare, çözüm yolunda sıradaki adımdır.')};
 $('next').onclick=()=>{if(!won)return;init((level+1)%LEVELS.length)};
 init(0);
 </script></body></html>
