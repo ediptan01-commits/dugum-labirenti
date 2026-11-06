@@ -3,7 +3,7 @@
 Orijinal tam ekran oyunu koruyan Android (Flutter WebView) sürümü.
 
 ## İçerik
-- `assets/game.html`: 8 bölümlü, beyaz numaralı bloklu orijinal oyun
+- `assets/game.html`: 10 bölümlü, beyaz numaralı bloklu orijinal oyun
 - `lib/main.dart`: çevrimdışı Flutter Android WebView kabuğu
 - `.github/workflows/android.yml`: GitHub Actions APK/AAB derlemesi
 
