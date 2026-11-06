@@ -1,3 +1,4 @@
+const vm = require('node:vm');
 const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const html = fs.readFileSync('assets/game.html','utf8');
@@ -28,3 +29,8 @@ for (let i=0;i<levels.length;i++) {
   }
 }
 console.log('OK: 10 levels, route connectivity, walls, crystals and gates.');
+
+const script = html.match(/<script>([\s\S]*?)<\/script>/);
+assert(script, 'Gameplay JavaScript missing');
+new vm.Script(script[1], {filename:'game-inline.js'});
+console.log('OK: game JavaScript parses, audio and UI scripts valid.');
