@@ -15,6 +15,9 @@ jobs:
       - name: Kodları al
         uses: actions/checkout@v4
 
+      - name: 10 bölüm çözüm doğrulaması
+        run: node scripts/validate-levels.cjs
+
       - name: Java 17
         uses: actions/setup-java@v4
         with:
