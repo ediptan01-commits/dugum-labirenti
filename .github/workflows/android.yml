@@ -30,6 +30,7 @@ jobs:
       - name: Android proje dosyalarını oluştur
         run: |
           flutter create --platforms android --project-name dugum_labirenti --org com.teknolojix .
+          rm -f test/widget_test.dart
           sed -i 's/android:label="dugum_labirenti"/android:label="Düğüm Labirenti"/' android/app/src/main/AndroidManifest.xml
 
       - name: Paketleri indir
