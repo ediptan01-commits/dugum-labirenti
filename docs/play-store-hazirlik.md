@@ -21,6 +21,8 @@ Aynı numaralı BAŞLA ve HEDEF bloklarını birbirine bağla. Her bağlantıda 
 
 Doğru rotayı keşfet, bağlantıları sırayla tamamla ve zincir reaksiyonunu başlat!
 
+**Destek e-postası:** teknolojixx01@gmail.com
+
 ## Kapalı test sürümü
 
 - **Görünen ad:** Blok Birleştirme
