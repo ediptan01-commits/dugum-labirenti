@@ -1,4 +1,4 @@
-name: Düğüm Labirenti Android APK ve Play AAB
+name: Blok Birleştirme Android APK ve Play AAB
 
 on:
   push:
@@ -34,7 +34,14 @@ jobs:
         run: |
           flutter create --platforms android --project-name dugum_labirenti --org com.teknolojix .
           rm -f test/widget_test.dart
-          sed -i 's/android:label="dugum_labirenti"/android:label="Düğüm Labirenti"/' android/app/src/main/AndroidManifest.xml
+          sed -i 's/android:label="dugum_labirenti"/android:label="Blok Birleştirme"/' android/app/src/main/AndroidManifest.xml
+          sed -i 's/android:label="Düğüm Labirenti"/android:label="Blok Birleştirme"/' android/app/src/main/AndroidManifest.xml
+
+      - name: Oyun ikonunu Android uygulamasına uygula
+        run: |
+          python3 -m pip install --quiet cairosvg Pillow
+          python3 scripts/install_launcher_icon.py
+          test -s android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
 
       - name: Paketleri indir ve test et
         run: |
@@ -48,7 +55,7 @@ jobs:
       - name: Test APK'yi yükle (Play Store için değil)
         uses: actions/upload-artifact@v4
         with:
-          name: Dugum-Labirenti-TEST-APK
+          name: Blok-Birlestirme-TEST-APK
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
 
@@ -94,7 +101,7 @@ jobs:
         if: steps.signing.outputs.ready == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: Dugum-Labirenti-SIGNED-APK
+          name: Blok-Birlestirme-SIGNED-APK
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
 
@@ -102,6 +109,6 @@ jobs:
         if: steps.signing.outputs.ready == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: Dugum-Labirenti-PLAY-SIGNED-AAB
+          name: Blok-Birlestirme-PLAY-SIGNED-AAB
           path: build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
