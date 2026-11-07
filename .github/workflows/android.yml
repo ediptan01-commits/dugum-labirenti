@@ -85,6 +85,19 @@ jobs:
           chmod 600 android/upload-keystore.jks
           python3 scripts/configure_play_signing.py
 
+      - name: Play imzalama anahtarını önceden doğrula
+        if: steps.signing.outputs.ready == 'true'
+        env:
+          PLAY_STORE_PASSWORD: ${{ secrets.PLAY_STORE_PASSWORD }}
+          PLAY_KEY_PASSWORD: ${{ secrets.PLAY_KEY_PASSWORD }}
+          PLAY_KEY_ALIAS: ${{ secrets.PLAY_KEY_ALIAS }}
+        run: |
+          if ! keytool -list -keystore android/upload-keystore.jks -storepass "$PLAY_STORE_PASSWORD" -alias "$PLAY_KEY_ALIAS" >/dev/null 2>&1; then
+            echo "::error::Play imzalama anahtari acilamadi. GitHub Secrets PLAY_STORE_PASSWORD veya PLAY_KEY_ALIAS degerlerini imzalama yedegindeki bilgilerle yeniden eslestirin."
+            exit 1
+          fi
+          echo "Upload keystore password and alias verified."
+
       - name: Play için imzalı APK ve AAB oluştur
         if: steps.signing.outputs.ready == 'true'
         env:
