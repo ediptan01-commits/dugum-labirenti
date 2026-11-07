@@ -4,6 +4,7 @@ from pathlib import Path
 from io import BytesIO
 import hashlib
 import json
+import re
 import zipfile
 from PIL import Image
 
@@ -42,7 +43,8 @@ for artifact, game_path in (
 
 expected_cert = hashlib.sha256(Path("build/upload-certificate.der").read_bytes()).hexdigest()
 apk_report = Path("build/apk-signature.txt").read_text()
-assert f"Signer #1 certificate SHA-256 digest: {expected_cert}" in apk_report, "APK signer differs from upload key"
+signers = re.findall(r"certificate SHA-256 digest:\s*([0-9a-fA-F]{64})", apk_report)
+assert signers and all(d.lower() == expected_cert for d in signers), f"APK signer differs: expected {expected_cert}, got {signers}; report: {apk_report}"
 report["upload_certificate_sha256"] = expected_cert
 report["apk_signature"] = "apksigner verified; upload certificate matched"
 report["aab_signature"] = "all payload entries verified by VerifyBundle against upload certificate"

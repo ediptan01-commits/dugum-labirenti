@@ -3,6 +3,11 @@ name: Blok Birleştirme Android APK ve Play AAB
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - docs/**
+      - README.md
+      - scripts/test-game.cjs
+      - .github/workflows/game-qa.yml
   workflow_dispatch:
 
 permissions:
@@ -120,6 +125,7 @@ jobs:
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
           test -n "$APKSIGNER"
           "$APKSIGNER" verify --verbose --print-certs build/app/outputs/flutter-apk/app-release.apk > build/apk-signature.txt
+          cat build/apk-signature.txt
           python3 scripts/verify_release.py
           cd build/app/outputs/flutter-apk
           sha256sum app-release.apk
@@ -142,7 +148,7 @@ jobs:
           if-no-files-found: error
 
       - name: Doğrulama raporu ve mağaza ikonunu yükle
-        if: steps.signing.outputs.ready == 'true'
+        if: always() && steps.signing.outputs.ready == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: Blok-Birlestirme-RELEASE-VERIFICATION
