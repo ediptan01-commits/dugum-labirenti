@@ -1,0 +1,36 @@
+name: Blok Birleştirme Gameplay QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - assets/game.html
+      - assets/launcher_icon.svg
+      - scripts/test-game.cjs
+      - .github/workflows/game-qa.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gameplay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: On bölümün veri bütünlüğünü doğrula
+        run: node scripts/validate-levels.cjs
+      - name: Tarayıcı test araçlarını hazırla
+        run: |
+          npm install --prefix "$RUNNER_TEMP/game-qa" playwright
+          "$RUNNER_TEMP/game-qa/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Tüm bölümleri oyna ve mağaza ekranlarını al
+        env:
+          NODE_PATH: ${{ runner.temp }}/game-qa/node_modules
+        run: node scripts/test-game.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Blok-Birlestirme-GAMEPLAY-QA
+          path: build/store-assets
+          if-no-files-found: error
